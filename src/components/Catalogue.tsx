@@ -54,6 +54,7 @@ export function Catalogue({
           style={{
             background: "var(--paper-dim)",
             borderLeft: `3px solid ${statusBorder[book.status]}`,
+            borderRadius: 3,
           }}
         >
           <div className="flex items-start justify-between gap-2">

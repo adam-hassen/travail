@@ -44,7 +44,7 @@ export function SeriesForm({ onCreated }: { onCreated: () => void }) {
     <form
       onSubmit={handleSubmit}
       className="space-y-3 p-5"
-      style={{ background: "var(--paper-dim)", borderLeft: "3px solid var(--wine)" }}
+      style={{ background: "var(--paper-dim)", borderLeft: "3px solid var(--wine)", borderRadius: 3 }}
     >
       <div>
         <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
@@ -55,8 +55,7 @@ export function SeriesForm({ onCreated }: { onCreated: () => void }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="La saga du vent"
-          className="w-full px-3 py-2 text-sm bg-transparent"
-          style={{ border: "1px solid var(--paper-line)", color: "var(--text-on-paper)" }}
+          className="field w-full px-3 py-2 text-sm"
         />
       </div>
       <div>
@@ -67,8 +66,7 @@ export function SeriesForm({ onCreated }: { onCreated: () => void }) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
-          className="w-full px-3 py-2 text-sm bg-transparent"
-          style={{ border: "1px solid var(--paper-line)", color: "var(--text-on-paper)" }}
+          className="field w-full px-3 py-2 text-sm"
         />
       </div>
       {error && (
@@ -80,7 +78,7 @@ export function SeriesForm({ onCreated }: { onCreated: () => void }) {
         type="submit"
         disabled={submitting}
         className="px-4 py-2 text-sm disabled:opacity-50"
-        style={{ background: "var(--wine)", color: "var(--text-on-ink)" }}
+        style={{ background: "var(--wine)", color: "var(--text-on-ink)", borderRadius: 3 }}
       >
         {submitting ? "Création..." : "Ajouter à l'étagère"}
       </button>

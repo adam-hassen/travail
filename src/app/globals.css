@@ -44,6 +44,46 @@ body {
   outline-offset: 2px;
 }
 
+.field {
+  background: transparent;
+  border: 1px solid var(--paper-line);
+  border-radius: 3px;
+  color: var(--text-on-paper);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field:hover {
+  border-color: #b8a878;
+}
+
+.field:focus,
+.field:focus-within {
+  border-color: var(--wine);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(125, 40, 56, 0.12);
+}
+
+.field::placeholder {
+  color: #a39a85;
+}
+
+select.field {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236b6153' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+input[type="number"].field::-webkit-outer-spin-button,
+input[type="number"].field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"].field {
+  -moz-appearance: textfield;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;

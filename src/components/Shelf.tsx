@@ -48,7 +48,7 @@ export function Shelf({
               style={{
                 background: "var(--wine)",
                 color: "var(--text-on-ink)",
-                borderLeft: "3px solid var(--gold)",
+                borderLeft: "3px solid var(--gold)", borderRadius: 3,
               }}
             >
               <div>

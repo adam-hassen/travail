@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import type { Series } from "@/lib/types";
-
-const fieldStyle = {
-  border: "1px solid var(--paper-line)",
-  color: "var(--text-on-paper)",
-} as const;
+import { DatePicker } from "./DatePicker";
 
 export function BookForm({
   seriesList,
@@ -21,7 +17,7 @@ export function BookForm({
   const [coverUrl, setCoverUrl] = useState("");
   const [seriesId, setSeriesId] = useState("");
   const [orderInSeries, setOrderInSeries] = useState("");
-  const [publishDate, setPublishDate] = useState("");
+  const [publishDate, setPublishDate] = useState<Date | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +28,7 @@ export function BookForm({
     setCoverUrl("");
     setSeriesId("");
     setOrderInSeries("");
-    setPublishDate("");
+    setPublishDate(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -55,7 +51,7 @@ export function BookForm({
           coverUrl: coverUrl || undefined,
           seriesId: seriesId || undefined,
           orderInSeries: orderInSeries ? parseInt(orderInSeries, 10) : undefined,
-          publishDate: publishDate ? new Date(publishDate).toISOString() : undefined,
+          publishDate: publishDate ? publishDate.toISOString() : undefined,
         }),
       });
 
@@ -77,7 +73,7 @@ export function BookForm({
     <form
       onSubmit={handleSubmit}
       className="p-6 space-y-5"
-      style={{ background: "var(--paper-dim)", borderLeft: "3px solid var(--gold)" }}
+      style={{ background: "var(--paper-dim)", borderLeft: "3px solid var(--gold)", borderRadius: 3 }}
     >
       <div>
         <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
@@ -88,8 +84,7 @@ export function BookForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Tome 1 — L'éveil"
-          className="w-full px-3 py-2 text-base font-display bg-transparent"
-          style={fieldStyle}
+          className="field w-full px-3 py-2 text-base font-display"
         />
       </div>
 
@@ -101,8 +96,7 @@ export function BookForm({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className="w-full px-3 py-2 text-sm bg-transparent"
-          style={fieldStyle}
+          className="field w-full px-3 py-2 text-sm"
         />
       </div>
 
@@ -111,7 +105,7 @@ export function BookForm({
           <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
             Prix
           </label>
-          <div className="flex items-center" style={fieldStyle}>
+          <div className="field flex items-center">
             <input
               type="number"
               step="0.01"
@@ -135,8 +129,7 @@ export function BookForm({
             value={coverUrl}
             onChange={(e) => setCoverUrl(e.target.value)}
             placeholder="https://..."
-            className="w-full px-3 py-2 text-sm bg-transparent"
-            style={fieldStyle}
+            className="field w-full px-3 py-2 text-sm"
           />
         </div>
       </div>
@@ -149,8 +142,7 @@ export function BookForm({
           <select
             value={seriesId}
             onChange={(e) => setSeriesId(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-transparent"
-            style={fieldStyle}
+            className="field w-full px-3 py-2 text-sm"
           >
             <option value="">Livre indépendant</option>
             {seriesList.map((s) => (
@@ -172,8 +164,7 @@ export function BookForm({
             onChange={(e) => setOrderInSeries(e.target.value)}
             disabled={!seriesId}
             placeholder="1"
-            className="w-full px-3 py-2 text-sm bg-transparent disabled:opacity-40"
-            style={fieldStyle}
+            className="field w-full px-3 py-2 text-sm disabled:opacity-40"
           />
         </div>
       </div>
@@ -182,13 +173,7 @@ export function BookForm({
         <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
           Date de sortie — vide pour un brouillon
         </label>
-        <input
-          type="datetime-local"
-          value={publishDate}
-          onChange={(e) => setPublishDate(e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-transparent"
-          style={fieldStyle}
-        />
+        <DatePicker value={publishDate} onChange={setPublishDate} />
       </div>
 
       {error && (
@@ -201,7 +186,7 @@ export function BookForm({
         type="submit"
         disabled={submitting}
         className="px-5 py-2.5 text-sm disabled:opacity-50"
-        style={{ background: "var(--ink)", color: "var(--text-on-ink)" }}
+        style={{ background: "var(--ink)", color: "var(--text-on-ink)", borderRadius: 3 }}
       >
         {submitting ? "Écriture..." : "Inscrire au catalogue"}
       </button>
