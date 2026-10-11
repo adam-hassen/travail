@@ -12,6 +12,7 @@ export function BackOffice() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSeriesForm, setShowSeriesForm] = useState(false);
+  const [seriesNotice, setSeriesNotice] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     const [seriesRes, booksRes] = await Promise.all([
@@ -52,6 +53,20 @@ export function BackOffice() {
             ça se lit. La diffusion sur les boutiques et réseaux viendra s&apos;y brancher
             ensuite.
           </p>
+          <div
+            className="mt-6 max-w-md text-sm leading-relaxed p-4"
+            style={{ background: "rgba(255,255,255,0.06)", borderLeft: "3px solid var(--gold)", borderRadius: 3, color: "var(--text-on-ink-dim)" }}
+          >
+            <p style={{ color: "var(--text-on-ink)" }} className="font-display text-base mb-1">
+              Comment ça marche
+            </p>
+            <p>
+              1. Tu crées une série si le livre fait partie d&apos;une saga.<br />
+              2. Tu inscris le livre, avec ou sans date de sortie.<br />
+              3. Sans date → il reste en brouillon, visible seulement par toi.<br />
+              4. Avec une date → il devient « Publié » automatiquement ce jour-là.
+            </p>
+          </div>
         </div>
       </header>
 
@@ -71,12 +86,18 @@ export function BackOffice() {
               {showSeriesForm && (
                 <div className="mt-4">
                   <SeriesForm
-                    onCreated={() => {
+                    onCreated={(name) => {
                       refresh();
                       setShowSeriesForm(false);
+                      setSeriesNotice(`« ${name} » a été ajoutée à l'étagère.`);
                     }}
                   />
                 </div>
+              )}
+              {seriesNotice && (
+                <p className="text-sm mt-3" style={{ color: "var(--text-on-paper)" }}>
+                  ✓ {seriesNotice}
+                </p>
               )}
             </section>
 

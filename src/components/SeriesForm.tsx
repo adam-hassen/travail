@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function SeriesForm({ onCreated }: { onCreated: () => void }) {
+export function SeriesForm({ onCreated }: { onCreated: (name: string) => void }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -30,9 +30,10 @@ export function SeriesForm({ onCreated }: { onCreated: () => void }) {
         throw new Error(data.error?.formErrors?.[0] ?? "Erreur à la création");
       }
 
+      const savedName = name;
       setName("");
       setDescription("");
-      onCreated();
+      onCreated(savedName);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {

@@ -20,6 +20,7 @@ export function BookForm({
   const [publishDate, setPublishDate] = useState<Date | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   function reset() {
     setTitle("");
@@ -34,6 +35,7 @@ export function BookForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
 
     const priceNum = parseFloat(price);
     if (!title.trim()) return setError("Le titre est requis");
@@ -60,8 +62,14 @@ export function BookForm({
         throw new Error(data.error?.formErrors?.[0] ?? "Erreur à la création");
       }
 
+      const savedTitle = title;
       reset();
       onCreated();
+      setSuccess(
+        publishDate
+          ? `« ${savedTitle} » est inscrit et programmé. Il passera en « Publié » automatiquement à la date prévue.`
+          : `« ${savedTitle} » est inscrit comme brouillon. Ajoute une date de sortie quand tu seras prête à le programmer.`
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
@@ -100,7 +108,7 @@ export function BookForm({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
             Prix
@@ -134,7 +142,7 @@ export function BookForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
             Série
@@ -174,11 +182,22 @@ export function BookForm({
           Date de sortie — vide pour un brouillon
         </label>
         <DatePicker value={publishDate} onChange={setPublishDate} />
+        <p className="text-xs mt-2" style={{ color: "var(--text-on-paper-dim)" }}>
+          {publishDate
+            ? "À cette date, le livre passera tout seul de « Programmé » à « Publié »."
+            : "Sans date, le livre reste en brouillon : personne ne le voit encore."}
+        </p>
       </div>
 
       {error && (
         <p className="text-sm" style={{ color: "var(--wine)" }}>
           {error}
+        </p>
+      )}
+
+      {success && (
+        <p className="text-sm" style={{ color: "var(--text-on-paper)" }}>
+          ✓ {success}
         </p>
       )}
 
