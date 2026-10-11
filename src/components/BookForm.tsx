@@ -3,6 +3,11 @@
 import { useState } from "react";
 import type { Series } from "@/lib/types";
 
+const fieldStyle = {
+  border: "1px solid var(--paper-line)",
+  color: "var(--text-on-paper)",
+} as const;
+
 export function BookForm({
   seriesList,
   onCreated,
@@ -16,7 +21,7 @@ export function BookForm({
   const [coverUrl, setCoverUrl] = useState("");
   const [seriesId, setSeriesId] = useState("");
   const [orderInSeries, setOrderInSeries] = useState("");
-  const [publishDate, setPublishDate] = useState(""); // datetime-local
+  const [publishDate, setPublishDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,62 +74,83 @@ export function BookForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
-      <h3 className="text-sm font-medium text-neutral-900">Nouveau livre</h3>
-
+    <form
+      onSubmit={handleSubmit}
+      className="p-6 space-y-5"
+      style={{ background: "var(--paper-dim)", borderLeft: "3px solid var(--gold)" }}
+    >
       <div>
-        <label className="block text-xs text-neutral-600 mb-1">Titre</label>
+        <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
+          Titre
+        </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Tome 1 - L'éveil"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          placeholder="Tome 1 — L'éveil"
+          className="w-full px-3 py-2 text-base font-display bg-transparent"
+          style={fieldStyle}
         />
       </div>
 
       <div>
-        <label className="block text-xs text-neutral-600 mb-1">Description (optionnel)</label>
+        <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
+          Description
+        </label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="w-full px-3 py-2 text-sm bg-transparent"
+          style={fieldStyle}
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs text-neutral-600 mb-1">Prix (€)</label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="12.90"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
+          <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
+            Prix
+          </label>
+          <div className="flex items-center" style={fieldStyle}>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="12.90"
+              className="w-full px-3 py-2 text-sm bg-transparent outline-none"
+            />
+            <span className="pr-3 text-sm" style={{ color: "var(--text-on-paper-dim)" }}>
+              €
+            </span>
+          </div>
         </div>
         <div>
-          <label className="block text-xs text-neutral-600 mb-1">Photo de couverture (URL, optionnel)</label>
+          <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
+            Couverture (URL)
+          </label>
           <input
             type="url"
             value={coverUrl}
             onChange={(e) => setCoverUrl(e.target.value)}
             placeholder="https://..."
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="w-full px-3 py-2 text-sm bg-transparent"
+            style={fieldStyle}
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs text-neutral-600 mb-1">Série (optionnel)</label>
+          <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
+            Série
+          </label>
           <select
             value={seriesId}
             onChange={(e) => setSeriesId(e.target.value)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm bg-white"
+            className="w-full px-3 py-2 text-sm bg-transparent"
+            style={fieldStyle}
           >
             <option value="">Livre indépendant</option>
             {seriesList.map((s) => (
@@ -135,7 +161,9 @@ export function BookForm({
           </select>
         </div>
         <div>
-          <label className="block text-xs text-neutral-600 mb-1">Position dans la série</label>
+          <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
+            Tome n°
+          </label>
           <input
             type="number"
             min="1"
@@ -143,32 +171,39 @@ export function BookForm({
             value={orderInSeries}
             onChange={(e) => setOrderInSeries(e.target.value)}
             disabled={!seriesId}
-            placeholder="1, 2, 3..."
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100 disabled:text-neutral-400"
+            placeholder="1"
+            className="w-full px-3 py-2 text-sm bg-transparent disabled:opacity-40"
+            style={fieldStyle}
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs text-neutral-600 mb-1">
-          Date de sortie programmée (laisser vide = brouillon)
+        <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
+          Date de sortie — vide pour un brouillon
         </label>
         <input
           type="datetime-local"
           value={publishDate}
           onChange={(e) => setPublishDate(e.target.value)}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="w-full px-3 py-2 text-sm bg-transparent"
+          style={fieldStyle}
         />
       </div>
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && (
+        <p className="text-sm" style={{ color: "var(--wine)" }}>
+          {error}
+        </p>
+      )}
 
       <button
         type="submit"
         disabled={submitting}
-        className="rounded-md bg-neutral-900 px-3 py-2 text-sm text-white disabled:opacity-50"
+        className="px-5 py-2.5 text-sm disabled:opacity-50"
+        style={{ background: "var(--ink)", color: "var(--text-on-ink)" }}
       >
-        {submitting ? "Création..." : "Créer le livre"}
+        {submitting ? "Écriture..." : "Inscrire au catalogue"}
       </button>
     </form>
   );

@@ -3,14 +3,15 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Book, Series } from "@/lib/types";
 import { SeriesForm } from "./SeriesForm";
-import { SeriesList } from "./SeriesList";
+import { Shelf } from "./Shelf";
 import { BookForm } from "./BookForm";
-import { BooksTable } from "./BooksTable";
+import { Catalogue } from "./Catalogue";
 
 export function BackOffice() {
   const [seriesList, setSeriesList] = useState<Series[]>([]);
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSeriesForm, setShowSeriesForm] = useState(false);
 
   const refresh = useCallback(async () => {
     const [seriesRes, booksRes] = await Promise.all([
@@ -26,33 +27,75 @@ export function BackOffice() {
     refresh();
   }, [refresh]);
 
-  if (loading) {
-    return <p className="p-6 text-sm text-neutral-500">Chargement...</p>;
-  }
-
   return (
-    <div className="mx-auto max-w-5xl space-y-10 p-6">
-      <header>
-        <h1 className="text-xl font-semibold text-neutral-900">Back-office — Livres</h1>
-        <p className="text-sm text-neutral-500">
-          Saisis tes livres et tes séries ici. La publication Shopify et réseaux sociaux
-          sera branchée une fois les accès API récupérés.
-        </p>
+    <div className="min-h-screen" style={{ background: "var(--paper)" }}>
+      {/* la couverture */}
+      <header
+        className="px-6 py-10 sm:py-14"
+        style={{ background: "var(--ink)", color: "var(--text-on-ink)" }}
+      >
+        <div className="mx-auto max-w-3xl">
+          <p
+            className="text-sm mb-2"
+            style={{ color: "var(--gold-soft)" }}
+          >
+            Maison d&apos;édition indépendante
+          </p>
+          <h1 className="font-display text-4xl sm:text-5xl" style={{ fontWeight: 480 }}>
+            L&apos;Atelier
+          </h1>
+          <p
+            className="mt-3 max-w-md text-sm leading-relaxed"
+            style={{ color: "var(--text-on-ink-dim)" }}
+          >
+            Le registre des livres : ce que tu écris, quand ça sort, et dans quel ordre
+            ça se lit. La diffusion sur les boutiques et réseaux viendra s&apos;y brancher
+            ensuite.
+          </p>
+        </div>
       </header>
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-neutral-900">Séries</h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <SeriesForm onCreated={refresh} />
-          <SeriesList seriesList={seriesList} onDeleted={refresh} />
-        </div>
-      </section>
+      <main className="mx-auto max-w-3xl px-6 py-10 space-y-14">
+        {loading ? (
+          <p className="text-sm" style={{ color: "var(--text-on-paper-dim)" }}>
+            Ouverture du registre...
+          </p>
+        ) : (
+          <>
+            <section>
+              <Shelf
+                seriesList={seriesList}
+                onDeleted={refresh}
+                onRequestNewSeries={() => setShowSeriesForm((v) => !v)}
+              />
+              {showSeriesForm && (
+                <div className="mt-4">
+                  <SeriesForm
+                    onCreated={() => {
+                      refresh();
+                      setShowSeriesForm(false);
+                    }}
+                  />
+                </div>
+              )}
+            </section>
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-neutral-900">Livres</h2>
-        <BookForm seriesList={seriesList} onCreated={refresh} />
-        <BooksTable books={books} onDeleted={refresh} />
-      </section>
+            <section>
+              <h2 className="font-display text-2xl mb-4" style={{ color: "var(--text-on-paper)" }}>
+                Nouveau livre
+              </h2>
+              <BookForm seriesList={seriesList} onCreated={refresh} />
+            </section>
+
+            <section>
+              <h2 className="font-display text-2xl mb-4" style={{ color: "var(--text-on-paper)" }}>
+                Le catalogue
+              </h2>
+              <Catalogue books={books} onDeleted={refresh} />
+            </section>
+          </>
+        )}
+      </main>
     </div>
   );
 }

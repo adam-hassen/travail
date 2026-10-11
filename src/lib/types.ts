@@ -4,6 +4,7 @@ export type Series = {
   slug: string;
   description: string | null;
   createdAt: string;
+  books?: Book[];
 };
 
 export type BookStatus = "draft" | "scheduled" | "published";
