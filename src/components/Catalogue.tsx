@@ -76,7 +76,7 @@ export function Catalogue({
                   src={book.coverUrl}
                   alt={`Couverture de ${book.title}`}
                   className="w-10 h-14 object-cover shrink-0"
-                  style={{ borderRadius: 3, border: "1px solid var(--paper-line)" }}
+                  style={{ borderRadius: 2, boxShadow: "0 4px 10px -4px var(--shadow-ink)" }}
                 />
               ) : null}
               <h3 className="font-display text-lg leading-tight" style={{ color: "var(--text-on-paper)" }}>
