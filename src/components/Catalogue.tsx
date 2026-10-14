@@ -68,10 +68,21 @@ export function Catalogue({
             borderRadius: 3,
           }}
         >
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-display text-lg leading-tight" style={{ color: "var(--text-on-paper)" }}>
-              {book.title}
-            </h3>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3 min-w-0">
+              {book.coverUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={book.coverUrl}
+                  alt={`Couverture de ${book.title}`}
+                  className="w-10 h-14 object-cover shrink-0"
+                  style={{ borderRadius: 3, border: "1px solid var(--paper-line)" }}
+                />
+              ) : null}
+              <h3 className="font-display text-lg leading-tight" style={{ color: "var(--text-on-paper)" }}>
+                {book.title}
+              </h3>
+            </div>
             <button
               onClick={() => handleDelete(book.id, book.title)}
               aria-label={`Retirer ${book.title}`}

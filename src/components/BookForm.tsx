@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Series } from "@/lib/types";
 import { DatePicker } from "./DatePicker";
+import { fileToCoverDataUrl } from "@/lib/image";
 
 export function BookForm({
   seriesList,
@@ -21,6 +22,8 @@ export function BookForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function reset() {
     setTitle("");
@@ -30,6 +33,33 @@ export function BookForm({
     setSeriesId("");
     setOrderInSeries("");
     setPublishDate(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Le fichier choisi n'est pas une image");
+      return;
+    }
+
+    setError(null);
+    setImageLoading(true);
+    try {
+      const dataUrl = await fileToCoverDataUrl(file);
+      setCoverUrl(dataUrl);
+    } catch {
+      setError("Impossible de lire cette photo, essaie une autre image");
+    } finally {
+      setImageLoading(false);
+    }
+  }
+
+  function removePhoto() {
+    setCoverUrl("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -130,15 +160,56 @@ export function BookForm({
         </div>
         <div>
           <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
-            Couverture (URL)
+            Photo de couverture
           </label>
-          <input
-            type="url"
-            value={coverUrl}
-            onChange={(e) => setCoverUrl(e.target.value)}
-            placeholder="https://..."
-            className="field w-full px-3 py-2 text-sm"
-          />
+          <div className="flex items-center gap-3">
+            {coverUrl ? (
+              <div className="relative shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={coverUrl}
+                  alt="Aperçu de la couverture"
+                  className="w-14 h-20 object-cover"
+                  style={{ borderRadius: 3, border: "1px solid var(--paper-line)" }}
+                />
+                <button
+                  type="button"
+                  onClick={removePhoto}
+                  aria-label="Retirer la photo"
+                  className="absolute -top-2 -right-2 w-5 h-5 text-xs flex items-center justify-center"
+                  style={{ background: "var(--wine)", color: "var(--text-on-ink)", borderRadius: "50%" }}
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <div
+                className="w-14 h-20 shrink-0 flex items-center justify-center text-xs text-center"
+                style={{ background: "var(--paper)", border: "1px dashed var(--paper-line)", borderRadius: 3, color: "var(--text-on-paper-dim)" }}
+              >
+                aucune
+              </div>
+            )}
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhoto}
+                className="hidden"
+                id="cover-photo-input"
+              />
+              <label
+                htmlFor="cover-photo-input"
+                className="field inline-block px-3 py-2 text-sm cursor-pointer"
+              >
+                {imageLoading ? "Chargement..." : coverUrl ? "Changer la photo" : "Choisir une photo"}
+              </label>
+              <p className="text-xs mt-1" style={{ color: "var(--text-on-paper-dim)" }}>
+                Depuis l&apos;ordinateur ou le téléphone
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

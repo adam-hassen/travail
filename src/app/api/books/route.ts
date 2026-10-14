@@ -9,7 +9,9 @@ const createBookSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),
   description: z.string().optional(),
   price: z.number().positive("Le prix doit être positif"),
-  coverUrl: z.string().url().optional().or(z.literal("")),
+  // Soit une URL classique, soit une image envoyée depuis le formulaire
+  // (encodée en data URL — pas besoin d'un service de stockage externe).
+  coverUrl: z.string().max(3_000_000).optional().or(z.literal("")),
   seriesId: z.string().uuid().optional().nullable(),
   orderInSeries: z.number().int().positive().optional().nullable(),
   publishDate: z.string().datetime().optional().nullable(), // ISO string

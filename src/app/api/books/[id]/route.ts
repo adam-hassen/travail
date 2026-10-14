@@ -9,7 +9,7 @@ const updateBookSchema = z.object({
   title: z.string().min(1).optional(),
   description: z.string().optional(),
   price: z.number().positive().optional(),
-  coverUrl: z.string().url().optional().or(z.literal("")),
+  coverUrl: z.string().max(3_000_000).optional().or(z.literal("")),
   seriesId: z.string().uuid().optional().nullable(),
   orderInSeries: z.number().int().positive().optional().nullable(),
   publishDate: z.string().datetime().optional().nullable(),
