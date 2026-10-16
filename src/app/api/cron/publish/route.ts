@@ -9,8 +9,15 @@ import { pushBookToShopify, shopifyConfigured } from "@/lib/shopify";
 // si les identifiants sont configurés. Idempotent — peut être rejoué sans
 // risque si Vercel déclenche deux fois ou qu'une exécution est manquée.
 export async function GET(req: NextRequest) {
+  // Vercel appelle cette route avec l'en-tête Authorization. Pour un test
+  // manuel depuis le navigateur (sans pouvoir fixer d'en-tête), on accepte
+  // aussi le même secret en paramètre d'URL ?key=...
   const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const keyParam = req.nextUrl.searchParams.get("key");
+  const authorized =
+    authHeader === `Bearer ${process.env.CRON_SECRET}` || keyParam === process.env.CRON_SECRET;
+
+  if (!authorized) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
