@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Book, BookStatus } from "@/lib/types";
 
 const statusLabel: Record<BookStatus, string> = {
@@ -31,10 +32,30 @@ export function Catalogue({
   books: Book[];
   onDeleted: () => void;
 }) {
+  const [publishing, setPublishing] = useState<string | null>(null);
+  const [publishError, setPublishError] = useState<{ id: string; message: string } | null>(null);
+
   async function handleDelete(id: string, title: string) {
     if (!confirm(`Retirer « ${title} » du catalogue ?`)) return;
     await fetch(`/api/books/${id}`, { method: "DELETE" });
     onDeleted();
+  }
+
+  async function handlePublishNow(id: string) {
+    setPublishing(id);
+    setPublishError(null);
+    try {
+      const res = await fetch(`/api/books/${id}/publish-now`, { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Échec de l'envoi vers Shopify");
+      }
+      onDeleted();
+    } catch (err) {
+      setPublishError({ id, message: err instanceof Error ? err.message : "Erreur inconnue" });
+    } finally {
+      setPublishing(null);
+    }
   }
 
   const legend: { status: BookStatus; help: string }[] = [
@@ -107,6 +128,32 @@ export function Catalogue({
           {book.publishDate && (
             <p className="text-xs" style={{ color: "var(--text-on-paper-dim)" }}>
               Sortie le {formatDate(book.publishDate)}
+            </p>
+          )}
+
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handlePublishNow(book.id)}
+              disabled={publishing === book.id}
+              className="text-xs underline underline-offset-4 disabled:opacity-50"
+              style={{ color: "var(--wine)" }}
+            >
+              {publishing === book.id
+                ? "Envoi en cours..."
+                : book.shopifyProductId
+                ? "Mettre à jour sur Shopify"
+                : "Publier sur Shopify maintenant"}
+            </button>
+            {book.shopifyProductId && (
+              <span className="text-xs" style={{ color: "var(--text-on-paper-dim)" }}>
+                ✓ synchronisé
+              </span>
+            )}
+          </div>
+          {publishError?.id === book.id && (
+            <p className="text-xs" style={{ color: "var(--wine)" }}>
+              {publishError.message}
             </p>
           )}
         </article>
