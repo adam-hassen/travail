@@ -1,24 +1,45 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { Series } from "@/lib/types";
+import type { Book, BookStatus, Series } from "@/lib/types";
 import { DatePicker } from "./DatePicker";
 import { fileToCoverDataUrl } from "@/lib/image";
+
+const statusOptions: { value: BookStatus; label: string }[] = [
+  { value: "draft", label: "Brouillon" },
+  { value: "scheduled", label: "Programmé" },
+  { value: "published", label: "Publié" },
+];
 
 export function BookForm({
   seriesList,
   onCreated,
+  editingBook,
+  onCancelEdit,
 }: {
   seriesList: Series[];
   onCreated: () => void;
+  editingBook?: Book | null;
+  onCancelEdit?: () => void;
 }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [coverUrl, setCoverUrl] = useState("");
-  const [seriesId, setSeriesId] = useState("");
-  const [orderInSeries, setOrderInSeries] = useState("");
-  const [publishDate, setPublishDate] = useState<Date | null>(null);
+  const isEditing = Boolean(editingBook);
+
+  // Le parent remonte ce formulaire (via une prop `key` liée à l'id du livre
+  // édité) à chaque passage brouillon ↔ édition, donc ces valeurs initiales
+  // n'ont besoin d'être lues qu'une fois par montage — pas de useEffect de
+  // synchronisation nécessaire.
+  const [title, setTitle] = useState(editingBook?.title ?? "");
+  const [description, setDescription] = useState(editingBook?.description ?? "");
+  const [price, setPrice] = useState(editingBook?.price ?? "");
+  const [coverUrl, setCoverUrl] = useState(editingBook?.coverUrl ?? "");
+  const [seriesId, setSeriesId] = useState(editingBook?.seriesId ?? "");
+  const [orderInSeries, setOrderInSeries] = useState(
+    editingBook?.orderInSeries ? String(editingBook.orderInSeries) : ""
+  );
+  const [publishDate, setPublishDate] = useState<Date | null>(
+    editingBook?.publishDate ? new Date(editingBook.publishDate) : null
+  );
+  const [status, setStatus] = useState<BookStatus>(editingBook?.status ?? "draft");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -34,6 +55,7 @@ export function BookForm({
     setSeriesId("");
     setOrderInSeries("");
     setPublishDate(null);
+    setStatus("draft");
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -84,33 +106,52 @@ export function BookForm({
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/books", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description: description || undefined,
-          price: priceNum,
-          coverUrl: coverUrl || undefined,
-          seriesId: seriesId || undefined,
-          orderInSeries: orderInSeries ? parseInt(orderInSeries, 10) : undefined,
-          publishDate: publishDate ? publishDate.toISOString() : undefined,
-        }),
-      });
+      const body: Record<string, unknown> = {
+        title,
+        description: description || undefined,
+        price: priceNum,
+        // En édition on envoie toujours la couverture (même vide) pour
+        // pouvoir la retirer ; à la création, "undefined" = pas de photo.
+        coverUrl: isEditing ? coverUrl : coverUrl || undefined,
+        seriesId: seriesId || undefined,
+        orderInSeries: orderInSeries ? parseInt(orderInSeries, 10) : undefined,
+        publishDate: publishDate ? publishDate.toISOString() : undefined,
+      };
+      if (isEditing) {
+        body.status = status;
+        // En édition, une date effacée doit bien effacer la programmation.
+        if (!publishDate) body.publishDate = null;
+        if (!seriesId) body.seriesId = null;
+        if (!orderInSeries) body.orderInSeries = null;
+      }
+
+      const res = await fetch(
+        isEditing ? `/api/books/${editingBook!.id}` : "/api/books",
+        {
+          method: isEditing ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error?.formErrors?.[0] ?? "Erreur à la création");
+        throw new Error(data.error?.formErrors?.[0] ?? "Erreur à l'enregistrement");
       }
 
       const savedTitle = title;
-      reset();
       onCreated();
-      setSuccess(
-        publishDate
-          ? `« ${savedTitle} » est inscrit et programmé. Il passera en « Publié » automatiquement à la date prévue.`
-          : `« ${savedTitle} » est inscrit comme brouillon. Ajoute une date de sortie quand tu seras prête à le programmer.`
-      );
+
+      if (isEditing) {
+        onCancelEdit?.();
+      } else {
+        reset();
+        setSuccess(
+          publishDate
+            ? `« ${savedTitle} » est inscrit et programmé. Il passera en « Publié » automatiquement à la date prévue.`
+            : `« ${savedTitle} » est inscrit comme brouillon. Ajoute une date de sortie quand tu seras prête à le programmer.`
+        );
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
@@ -284,6 +325,28 @@ export function BookForm({
               ? "À cette date, le livre passera tout seul de « Programmé » à « Publié »."
               : "Sans date, le livre reste en brouillon : personne ne le voit encore."}
           </p>
+
+          {isEditing && (
+            <div>
+              <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
+                Statut
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as BookStatus)}
+                className="field w-full px-3 py-2 text-sm"
+              >
+                {statusOptions.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs mt-1" style={{ color: "var(--text-on-paper-dim)" }}>
+                À changer manuellement seulement si besoin — sinon le statut se gère tout seul.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -299,14 +362,26 @@ export function BookForm({
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="px-5 py-2.5 text-sm mt-6 disabled:opacity-50"
-        style={{ background: "var(--ink)", color: "var(--text-on-ink)", borderRadius: 3 }}
-      >
-        {submitting ? "Écriture..." : "Inscrire au catalogue"}
-      </button>
+      <div className="flex items-center gap-4 mt-6">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="px-5 py-2.5 text-sm disabled:opacity-50"
+          style={{ background: "var(--ink)", color: "var(--text-on-ink)", borderRadius: 3 }}
+        >
+          {submitting ? "Écriture..." : isEditing ? "Enregistrer les modifications" : "Inscrire au catalogue"}
+        </button>
+        {isEditing && (
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            className="text-sm underline underline-offset-4"
+            style={{ color: "var(--text-on-paper-dim)" }}
+          >
+            Annuler
+          </button>
+        )}
+      </div>
     </form>
   );
 }

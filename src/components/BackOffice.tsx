@@ -13,6 +13,7 @@ export function BackOffice() {
   const [loading, setLoading] = useState(true);
   const [showSeriesForm, setShowSeriesForm] = useState(false);
   const [seriesNotice, setSeriesNotice] = useState<string | null>(null);
+  const [editingBook, setEditingBook] = useState<Book | null>(null);
 
   const refresh = useCallback(async () => {
     const [seriesRes, booksRes] = await Promise.all([
@@ -112,14 +113,27 @@ export function BackOffice() {
               )}
             </section>
 
-            <section>
-              <SectionTitle>Nouveau livre</SectionTitle>
-              <BookForm seriesList={seriesList} onCreated={refresh} />
+            <section id="book-form">
+              <SectionTitle>{editingBook ? "Modifier le livre" : "Nouveau livre"}</SectionTitle>
+              <BookForm
+                key={editingBook?.id ?? "new"}
+                seriesList={seriesList}
+                onCreated={refresh}
+                editingBook={editingBook}
+                onCancelEdit={() => setEditingBook(null)}
+              />
             </section>
 
             <section>
               <SectionTitle>Le catalogue</SectionTitle>
-              <Catalogue books={books} onDeleted={refresh} />
+              <Catalogue
+                books={books}
+                onDeleted={refresh}
+                onEdit={(book) => {
+                  setEditingBook(book);
+                  document.getElementById("book-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+              />
             </section>
           </>
         )}

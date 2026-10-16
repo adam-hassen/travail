@@ -28,9 +28,11 @@ function formatDate(iso: string) {
 export function Catalogue({
   books,
   onDeleted,
+  onEdit,
 }: {
   books: Book[];
   onDeleted: () => void;
+  onEdit: (book: Book) => void;
 }) {
   const [publishing, setPublishing] = useState<string | null>(null);
   const [publishError, setPublishError] = useState<{ id: string; message: string } | null>(null);
@@ -104,14 +106,24 @@ export function Catalogue({
                 {book.title}
               </h3>
             </div>
-            <button
-              onClick={() => handleDelete(book.id, book.title)}
-              aria-label={`Retirer ${book.title}`}
-              className="opacity-0 group-hover:opacity-100 transition-opacity text-xs shrink-0"
-              style={{ color: "var(--wine)" }}
-            >
-              ✕
-            </button>
+            <div className="flex items-center gap-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={() => onEdit(book)}
+                aria-label={`Modifier ${book.title}`}
+                className="text-xs"
+                style={{ color: "var(--text-on-paper-dim)" }}
+              >
+                Modifier
+              </button>
+              <button
+                onClick={() => handleDelete(book.id, book.title)}
+                aria-label={`Retirer ${book.title}`}
+                className="text-xs"
+                style={{ color: "var(--wine)" }}
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           <p className="text-sm" style={{ color: "var(--text-on-paper-dim)" }}>
