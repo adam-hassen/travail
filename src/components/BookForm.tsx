@@ -11,6 +11,10 @@ const statusOptions: { value: BookStatus; label: string }[] = [
   { value: "published", label: "Publié" },
 ];
 
+function formatPublished(date: Date) {
+  return date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+}
+
 export function BookForm({
   seriesList,
   onCreated,
@@ -46,6 +50,16 @@ export function BookForm({
   const [imageLoading, setImageLoading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handlePublishDateChange(date: Date | null) {
+    setPublishDate(date);
+    // En édition, ajouter une date à un brouillon le programme ; l'effacer
+    // ramène un livre programmé en brouillon. Reste modifiable à la main.
+    if (isEditing) {
+      if (date && status === "draft") setStatus("scheduled");
+      if (!date && status === "scheduled") setStatus("draft");
+    }
+  }
 
   function reset() {
     setTitle("");
@@ -317,11 +331,19 @@ export function BookForm({
               <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
                 Date de sortie
               </label>
-              <DatePicker value={publishDate} onChange={setPublishDate} />
+              {isEditing && status === "published" ? (
+                <p className="field w-full px-3 py-2 text-sm" style={{ color: "var(--text-on-paper-dim)" }}>
+                  Publié{publishDate ? ` le ${formatPublished(publishDate)}` : ""}
+                </p>
+              ) : (
+                <DatePicker value={publishDate} onChange={handlePublishDateChange} />
+              )}
             </div>
           </div>
           <p className="text-xs -mt-3" style={{ color: "var(--text-on-paper-dim)" }}>
-            {publishDate
+            {isEditing && status === "published"
+              ? "Ce livre est déjà publié — repasse-le en « Programmé » ou « Brouillon » dans le statut ci-dessous pour changer sa date."
+              : publishDate
               ? "À cette date, le livre passera tout seul de « Programmé » à « Publié »."
               : "Sans date, le livre reste en brouillon : personne ne le voit encore."}
           </p>

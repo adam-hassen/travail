@@ -206,9 +206,78 @@ input[type="number"].field {
   }
 }
 
+/* --- ouverture de la page : un seul mouvement, orchestré, pas de répétition --- */
+.reveal > * {
+  animation: rise-in 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.reveal > *:nth-child(1) {
+  animation-delay: 0s;
+}
+.reveal > *:nth-child(2) {
+  animation-delay: 0.08s;
+}
+.reveal > *:nth-child(3) {
+  animation-delay: 0.16s;
+}
+.reveal > *:nth-child(4) {
+  animation-delay: 0.24s;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- fenêtre d'édition --- */
+.modal-overlay {
+  background: rgba(21, 23, 31, 0.55);
+  animation: modal-fade 0.18s ease both;
+}
+
+.modal-panel {
+  animation: modal-rise 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --- bouton discret mais présent, pour les actions sur une fiche livre --- */
+.btn-chip {
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.btn-chip:hover {
+  border-color: var(--gold);
+  color: var(--text-on-paper);
+  background: rgba(181, 144, 47, 0.08);
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
 }
+

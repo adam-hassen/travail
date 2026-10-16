@@ -106,19 +106,25 @@ export function Catalogue({
                 {book.title}
               </h3>
             </div>
-            <div className="flex items-center gap-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-2 shrink-0">
               <button
+                type="button"
                 onClick={() => onEdit(book)}
                 aria-label={`Modifier ${book.title}`}
-                className="text-xs"
-                style={{ color: "var(--text-on-paper-dim)" }}
+                className="btn-chip text-xs px-2.5 py-1"
+                style={{
+                  border: "1px solid var(--paper-line)",
+                  borderRadius: 3,
+                  color: "var(--text-on-paper-dim)",
+                }}
               >
                 Modifier
               </button>
               <button
+                type="button"
                 onClick={() => handleDelete(book.id, book.title)}
                 aria-label={`Retirer ${book.title}`}
-                className="text-xs"
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-xs px-1"
                 style={{ color: "var(--wine)" }}
               >
                 ✕

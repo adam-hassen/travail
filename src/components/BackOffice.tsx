@@ -6,6 +6,7 @@ import { SeriesForm } from "./SeriesForm";
 import { Shelf } from "./Shelf";
 import { BookForm } from "./BookForm";
 import { Catalogue } from "./Catalogue";
+import { Modal } from "./Modal";
 
 export function BackOffice() {
   const [seriesList, setSeriesList] = useState<Series[]>([]);
@@ -42,7 +43,18 @@ export function BackOffice() {
           boxShadow: "0 1px 0 var(--ink), 0 4px 0 -2px var(--ink), 0 5px 0 -2px var(--ink-line)",
         }}
       >
-        <div className="mx-auto max-w-3xl relative">
+        <a
+          href="https://github.com/adam-hassen"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden sm:flex items-center gap-1.5 absolute top-6 right-6 text-xs opacity-70 hover:opacity-100 transition-opacity"
+          style={{ color: "var(--gold-soft)" }}
+        >
+          <Fleuron color="var(--gold-soft)" />
+          <span>Atelier conçu par Adam Hassen</span>
+        </a>
+
+        <div className="mx-auto max-w-3xl relative reveal">
           <div className="flex items-center gap-3 mb-2">
             <Fleuron color="var(--gold-soft)" />
             <p className="text-sm" style={{ color: "var(--gold-soft)" }}>
@@ -113,31 +125,30 @@ export function BackOffice() {
               )}
             </section>
 
-            <section id="book-form">
-              <SectionTitle>{editingBook ? "Modifier le livre" : "Nouveau livre"}</SectionTitle>
-              <BookForm
-                key={editingBook?.id ?? "new"}
-                seriesList={seriesList}
-                onCreated={refresh}
-                editingBook={editingBook}
-                onCancelEdit={() => setEditingBook(null)}
-              />
+            <section>
+              <SectionTitle>Nouveau livre</SectionTitle>
+              <BookForm seriesList={seriesList} onCreated={refresh} />
             </section>
 
             <section>
               <SectionTitle>Le catalogue</SectionTitle>
-              <Catalogue
-                books={books}
-                onDeleted={refresh}
-                onEdit={(book) => {
-                  setEditingBook(book);
-                  document.getElementById("book-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-              />
+              <Catalogue books={books} onDeleted={refresh} onEdit={setEditingBook} />
             </section>
           </>
         )}
       </main>
+
+      {editingBook && (
+        <Modal onClose={() => setEditingBook(null)} label={`Modifier ${editingBook.title}`}>
+          <BookForm
+            key={editingBook.id}
+            seriesList={seriesList}
+            onCreated={refresh}
+            editingBook={editingBook}
+            onCancelEdit={() => setEditingBook(null)}
+          />
+        </Modal>
+      )}
     </div>
   );
 }
