@@ -5,11 +5,17 @@ import type { Book, BookStatus, Series } from "@/lib/types";
 import { DatePicker } from "./DatePicker";
 import { fileToCoverDataUrl } from "@/lib/image";
 
-const statusOptions: { value: BookStatus; label: string }[] = [
-  { value: "draft", label: "Brouillon" },
-  { value: "scheduled", label: "Programmé" },
-  { value: "published", label: "Publié" },
-];
+const statusLabel: Record<BookStatus, string> = {
+  draft: "Brouillon",
+  scheduled: "Programmé",
+  published: "Publié",
+};
+
+const statusColor: Record<BookStatus, string> = {
+  draft: "var(--text-on-paper-dim)",
+  scheduled: "var(--gold)",
+  published: "var(--wine)",
+};
 
 function formatPublished(date: Date) {
   return date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
@@ -27,6 +33,11 @@ export function BookForm({
   onCancelEdit?: () => void;
 }) {
   const isEditing = Boolean(editingBook);
+  // Un livre déjà publié reste publié depuis ce formulaire : on ne touche
+  // plus à son statut ni à sa date ici (il faudrait passer par Shopify
+  // directement pour le dépublier). Seuls les livres pas encore publiés
+  // (brouillon ou programmé) peuvent être reprogrammés.
+  const isPublished = isEditing && editingBook!.status === "published";
 
   // Le parent remonte ce formulaire (via une prop `key` liée à l'id du livre
   // édité) à chaque passage brouillon ↔ édition, donc ces valeurs initiales
@@ -43,7 +54,6 @@ export function BookForm({
   const [publishDate, setPublishDate] = useState<Date | null>(
     editingBook?.publishDate ? new Date(editingBook.publishDate) : null
   );
-  const [status, setStatus] = useState<BookStatus>(editingBook?.status ?? "draft");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -51,15 +61,13 @@ export function BookForm({
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  function handlePublishDateChange(date: Date | null) {
-    setPublishDate(date);
-    // En édition, ajouter une date à un brouillon le programme ; l'effacer
-    // ramène un livre programmé en brouillon. Reste modifiable à la main.
-    if (isEditing) {
-      if (date && status === "draft") setStatus("scheduled");
-      if (!date && status === "scheduled") setStatus("draft");
-    }
-  }
+  // En édition (livre pas encore publié), le statut se déduit juste de la
+  // présence d'une date — exactement comme à la création.
+  const derivedStatus: BookStatus = isPublished
+    ? "published"
+    : publishDate
+    ? "scheduled"
+    : "draft";
 
   function reset() {
     setTitle("");
@@ -69,7 +77,6 @@ export function BookForm({
     setSeriesId("");
     setOrderInSeries("");
     setPublishDate(null);
-    setStatus("draft");
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -132,11 +139,16 @@ export function BookForm({
         publishDate: publishDate ? publishDate.toISOString() : undefined,
       };
       if (isEditing) {
-        body.status = status;
-        // En édition, une date effacée doit bien effacer la programmation.
-        if (!publishDate) body.publishDate = null;
         if (!seriesId) body.seriesId = null;
         if (!orderInSeries) body.orderInSeries = null;
+        // Un livre déjà publié reste tel quel : on ne touche ni à son
+        // statut ni à sa date depuis ce formulaire.
+        if (!isPublished) {
+          body.status = derivedStatus;
+          if (!publishDate) body.publishDate = null;
+        } else {
+          delete body.publishDate;
+        }
       }
 
       const res = await fetch(
@@ -247,6 +259,11 @@ export function BookForm({
         </div>
 
         <div className="space-y-5">
+          {isEditing && (
+            <p className="text-xs" style={{ color: statusColor[derivedStatus] }}>
+              Statut actuel : {statusLabel[derivedStatus]}
+            </p>
+          )}
           <div>
             <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
               Titre
@@ -331,44 +348,22 @@ export function BookForm({
               <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
                 Date de sortie
               </label>
-              {isEditing && status === "published" ? (
+              {isPublished ? (
                 <p className="field w-full px-3 py-2 text-sm" style={{ color: "var(--text-on-paper-dim)" }}>
                   Publié{publishDate ? ` le ${formatPublished(publishDate)}` : ""}
                 </p>
               ) : (
-                <DatePicker value={publishDate} onChange={handlePublishDateChange} />
+                <DatePicker value={publishDate} onChange={setPublishDate} />
               )}
             </div>
           </div>
           <p className="text-xs -mt-3" style={{ color: "var(--text-on-paper-dim)" }}>
-            {isEditing && status === "published"
-              ? "Ce livre est déjà publié — repasse-le en « Programmé » ou « Brouillon » dans le statut ci-dessous pour changer sa date."
+            {isPublished
+              ? "Ce livre est déjà publié — sa date ne se modifie plus depuis ce formulaire."
               : publishDate
               ? "À cette date, le livre passera tout seul de « Programmé » à « Publié »."
               : "Sans date, le livre reste en brouillon : personne ne le voit encore."}
           </p>
-
-          {isEditing && (
-            <div>
-              <label className="block text-sm mb-1" style={{ color: "var(--text-on-paper-dim)" }}>
-                Statut
-              </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as BookStatus)}
-                className="field w-full px-3 py-2 text-sm"
-              >
-                {statusOptions.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs mt-1" style={{ color: "var(--text-on-paper-dim)" }}>
-                À changer manuellement seulement si besoin — sinon le statut se gère tout seul.
-              </p>
-            </div>
-          )}
         </div>
       </div>
 
